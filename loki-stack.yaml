@@ -8,7 +8,7 @@ spec:
   sources:
   - repoURL: https://grafana.github.io/helm-charts
     chart: loki-stack
-    targetRevision: 2.9.11
+    targetRevision: 2.10.2
     helm:
       values: |
         loki:
@@ -71,7 +71,7 @@ spec:
           replicas: 0
   - repoURL: https://grafana.github.io/helm-charts
     chart: loki
-    targetRevision: 5.30.0
+    targetRevision: 6.21.0
     helm:
       values: |
         loki:
