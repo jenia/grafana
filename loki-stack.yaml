@@ -11,13 +11,13 @@ spec:
     targetRevision: 6.21.0
     helm:
       values: |
-        server:
-          log_level: debug
         chunksCache:
             enabled: false
         gateway:
           enabled: false
         loki:
+          server:
+            log_level: debug
           auth_enabled: false
           commonConfig:
             replication_factor: 1

@@ -1,0 +1,115 @@
+deploymentMode: Distributed
+loki:
+  auth_enabled: false
+  storage:
+    bucketNames:
+      chunks: ${account_id}-loki-${cluster_number}-${deployment_id}-${environment}-chunk
+      ruler: ${account_id}-loki-${cluster_number}-${deployment_id}-${environment}-ruler
+      admin: ${account_id}-loki-${cluster_number}-${deployment_id}-${environment}-admin
+    type: s3
+    s3:
+      region: us-gov-west-1
+  schemaConfig:
+    configs:
+      - from: 2024-04-01
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  ingester:
+    chunk_encoding: snappy
+  querier:
+    max_concurrent: 4
+test:
+  enabled: false
+lokiCanary:
+  enabled: false
+serviceAccount:
+  name: loki-sa
+  annotations:
+    eks.amazonaws.com/role-arn: ${role_arn}
+gateway:
+  enabled: true
+  replicas: 2
+  verboseLogging: false
+  service:
+    labels:
+      prometheus.io/service-monitor: "false"
+  ingress:
+    enabled: true
+    ingressClassName: "nginx-internal-trex"
+    annotations:
+      nginx.ingress.kubernetes.io/service-upstream: "true"
+      cert-manager.io/cluster-issuer: cert-manager-r53-qa
+      nginx.ingress.kubernetes.io/enable-access-log: "false"
+      nginx.ingress.kubernetes.io/client-body-buffer-size: 1M
+      nginx.ingress.kubernetes.io/modsecurity-snippet: |
+        SecRuleEngine Off
+    labels:
+      ingress: externaldns
+    hosts:
+      - host: loki-${cluster_number}-${environment}-${deployment_id}.${base_domain}
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls:
+      - secretName: loki-${cluster_number}-${environment}-${deployment_id}.${base_domain}-tls
+        hosts:
+          - loki-${cluster_number}-${environment}-${deployment_id}.${base_domain}
+rollout_operator:
+  enabled: false
+monitoring:
+  dashboards:
+    enabled: false
+  rules:
+    enabled: false
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+    metricsInstance:
+      enabled: false
+    relabelings:
+      - action: replace
+        replacement: loki/$1
+        regex: loki/loki-(.*)
+        sourceLabels:
+          - job
+        targetLabel: job
+  selfMonitoring:
+    enabled: false
+
+ingester:
+  replicas: 3
+querier:
+  replicas: 3
+  maxUnavailable: 2
+queryFrontend:
+  replicas: 2
+  maxUnavailable: 1
+queryScheduler:
+  replicas: 2
+distributor:
+  replicas: 3
+  maxUnavailable: 2
+compactor:
+  replicas: 1
+indexGateway:
+  replicas: 2
+  maxUnavailable: 1
+bloomCompactor:
+  replicas: 0
+bloomGateway:
+  replicas: 0
+
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
+singleBinary:
+  replicas: 0
