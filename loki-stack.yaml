@@ -11,6 +11,8 @@ spec:
     targetRevision: 6.21.0
     helm:
       values: |
+        server:
+          log_level: debug
         chunksCache:
             enabled: false
         gateway:
